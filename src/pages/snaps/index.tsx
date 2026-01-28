@@ -145,30 +145,22 @@ const Snaps = () => {
         className="grid grid-cols-[repeat(auto-fit,15rem)] justify-center gap-8 mt-[3rem]"
       >
         {currentUsersSnaps.map((snap, index) => (
-          <div key={snap.id} className="my-[2rem]">
+          <motion.div
+            variants={itemVariants}
+            custom={{
+              direction: scrollDirection,
+              depth: 60,
+            }}
+            key={snap.id}
+            className="my-[2rem]"
+          >
             <SnapCard
               id={snap.id}
               url={snap.url}
               caption={snap.caption}
               uploadedBy={snap.uploaded_by}
             />
-          </div>
-          // <motion.div
-          //   key={snap.id}
-          //   className="my-[2rem]"
-          //   variants={itemVariants}
-          //   custom={{
-          //     direction: scrollDirection,
-          //     depth: 60,
-          //   }}
-          // >
-          //   <SnapCard
-          //     id={snap.id}
-          //     url={snap.url}
-          //     caption={snap.caption}
-          //     uploadedBy={snap.uploaded_by}
-          //   />
-          // </motion.div>
+          </motion.div>
         ))}
       </motion.div>
 
