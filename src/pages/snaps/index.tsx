@@ -1,14 +1,14 @@
 import { useParams } from "react-router-dom";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { motion, Variants } from "framer-motion";
+import { toast } from "react-toastify";
+
 import { friendDatas } from "../../utils/datas";
 import Button from "../../components/Button";
-import NewImage from "./components/NewImage";
-import { useCallback, useState } from "react";
-import { config } from "../../config";
 import Metadata from "../../components/Metadata";
-import { motion, Variants } from "framer-motion";
-import { useEffect, useRef } from "react";
 import SnapCard from "./components/SnapCard";
-import { toast } from "react-toastify";
+import NewImage from "./components/NewImage";
+import { config } from "../../config";
 
 const containerVariants: Variants = {
   hidden: {},
@@ -19,50 +19,22 @@ const containerVariants: Variants = {
   },
 };
 
-// const itemVariants: Variants = {
-//   hidden: ({
-//     direction,
-//     depth,
-//   }: {
-//     direction: "up" | "down";
-//     depth: number;
-//   }) => ({
-//     opacity: 0,
-//     y: direction === "down" ? depth : -depth,
-//     scale: 0.9,
-//   }),
-
-//   show: {
-//     opacity: 1,
-//     y: 0,
-//     scale: 1,
-//     transition: {
-//       duration: 0.55,
-//       ease: "easeOut" as const,
-//     },
-//   },
-// };
-
 const Snaps = () => {
-  const [openNewImage, setOpenNewImage] = useState<boolean>(false);
   const { userId } = useParams();
+  const [openNewImage, setOpenNewImage] = useState(false);
   const [currentUsersSnaps, setCurrentUsersSnaps] = useState<any[]>([]);
 
   const lastScrollY = useRef(0);
-  // const [scrollDirection, setScrollDirection] = useState<"up" | "down">("down");
+  const loginToken = localStorage.getItem("logInToken");
+
+  const currentUser = friendDatas.find(
+    (friend) => friend.id === Number(userId),
+  );
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-
-      // if (currentScrollY > lastScrollY.current) {
-      //   setScrollDirection("down");
-      // } else {
-      //   setScrollDirection("up");
-      // }
-
       if (Math.abs(currentScrollY - lastScrollY.current) < 10) return;
-
       lastScrollY.current = currentScrollY;
     };
 
@@ -70,11 +42,35 @@ const Snaps = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const currentUser = friendDatas.find(
-    (friend) => friend.id === Number(userId),
-  );
+  const handleGetAllImagesByUserId = useCallback(async () => {
+    if (!loginToken) return;
 
-  const loginToken = localStorage.getItem("logInToken");
+    try {
+      const response = await fetch(
+        `${config.apiBaseUrl}/users/${userId}/images`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${loginToken}`,
+          },
+        },
+      );
+
+      const responseJson = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseJson?.message || "Failed to load snaps");
+      }
+
+      setCurrentUsersSnaps(responseJson.datas.data);
+    } catch (error: any) {
+      // silent fail
+    }
+  }, [loginToken, userId]);
+
+  useEffect(() => {
+    handleGetAllImagesByUserId();
+  }, [handleGetAllImagesByUserId]);
 
   const handleImageUpload = async () => {
     if (!loginToken) {
@@ -105,77 +101,79 @@ const Snaps = () => {
     }
   };
 
-  const handleGetAllImagesByUserId = useCallback(async () => {
-    if (!loginToken) {
-      toast.error("Please sign in to view snaps");
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `${config.apiBaseUrl}/users/${userId}/images`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${loginToken}`,
-          },
-        },
-      );
-
-      const responseJson = await response.json();
-
-      if (!response.ok) {
-        throw new Error(responseJson?.message || "Failed to load snaps");
-      }
-
-      setCurrentUsersSnaps(responseJson.datas.data);
-    } catch (error: any) {
-      // toast.error(error.message || "Error getting images");
-    }
-  }, [loginToken, userId]);
-
-  useEffect(() => {
-    handleGetAllImagesByUserId();
-  }, [handleGetAllImagesByUserId]);
-
-  if (!currentUser)
+  if (!currentUser) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-[3rem] font-semibold text-snap-white caveat-font text-center">
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <p className="text-2xl sm:text-3xl font-semibold text-snap-white text-center font-caveat-font">
           Oops! <br /> User Not Found!
         </p>
       </div>
     );
+  }
 
   return (
-    <div className="mt-[1.5rem]">
+    <div className="min-h-screen px-4 sm:px-6 lg:px-8 pt-6 pb-24">
       <Metadata title={`${currentUser.name}'s Snaps`} />
 
-      <div className="fixed right-20 top-[10rem]">
+      {/* Floating Add Button */}
+      <div
+        className="
+        fixed
+        bottom-6 right-6
+        sm:bottom-8 sm:right-8
+        z-50
+      "
+      >
         <Button
+          title="+ Add New"
           callBack={() =>
             loginToken
               ? setOpenNewImage(true)
               : toast.error("Please sign in to upload")
           }
-          title="+ Add New"
         />
       </div>
 
-      {/* Profile */}
-      <div className="w-fit mx-auto">
+      {/* Profile Section */}
+      <div className="flex flex-col items-center mb-10">
         <img
-          className="w-[8rem] h-[8rem] object-cover rounded-full"
           src={currentUser.url}
           alt={currentUser.name}
+          className="
+            w-24 h-24
+            sm:w-28 sm:h-28
+            lg:w-32 lg:h-32
+            rounded-full
+            object-cover
+            mb-4
+          "
         />
-        <h2 className="text-[1.5rem] text-snap-white font-semibold text-center mt-[1rem]">
+        <h2
+          className="
+          text-lg
+          sm:text-xl
+          lg:text-2xl
+          font-semibold
+          text-snap-white
+          text-center
+        "
+        >
           {currentUser.name}
         </h2>
       </div>
 
+      {/* Snaps Grid */}
       {!currentUsersSnaps.length ? (
-        <p className="text-center text-[2rem] font-bold mt-[5rem] text-snap-white opacity-70 col-span-full">
+        <p
+          className="
+          text-center
+          text-xl sm:text-2xl
+          font-bold
+          mt-16
+          text-snap-white
+          opacity-70
+        "
+        >
           No snaps yet 📭
         </p>
       ) : (
@@ -184,18 +182,18 @@ const Snaps = () => {
           initial="hidden"
           whileInView="show"
           viewport={{ amount: 0.2 }}
-          className="grid grid-cols-[repeat(auto-fit,15rem)] justify-center gap-8 mt-[3rem]"
+          className="
+            grid
+            grid-cols-1
+            sm:grid-cols-2
+            md:grid-cols-3
+            lg:grid-cols-4
+            gap-6
+            justify-center
+          "
         >
-          {currentUsersSnaps.map((snap, index) => (
-            <div
-              // variants={itemVariants}
-              // custom={{
-              //   direction: scrollDirection,
-              //   depth: 60,
-              // }}
-              key={snap.id}
-              className="my-[2rem]"
-            >
+          {currentUsersSnaps.map((snap) => (
+            <div key={snap.id} className="flex justify-center">
               <SnapCard
                 id={snap.id}
                 url={snap.url}
@@ -207,19 +205,7 @@ const Snaps = () => {
         </motion.div>
       )}
 
-      {/* <div className="flex justify-center mb-[5rem]">
-        <SnapCard
-          id={1}
-          url="https://i.pinimg.com/474x/3e/79/2f/3e792f2f83eeec7745a6f1862567c5e7.jpg"
-          caption="Developer Cat"
-          uploadedBy={{
-            id: 1,
-            name: "Ko Kyaw Gyi",
-            url: "https://i.pinimg.com/736x/62/6b/91/626b91460049992c732ae71917de14ed.jpg",
-          }}
-        />
-      </div> */}
-
+      {/* Upload Modal */}
       <NewImage
         open={openNewImage}
         setOpen={setOpenNewImage}
