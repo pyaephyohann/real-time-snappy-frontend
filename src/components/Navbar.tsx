@@ -1,25 +1,20 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import MenuCard from "./MenuCard";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 const Navbar: React.FC = () => {
   const [openMenuCard, setOpenMenuCard] = useState(false);
 
-  const [pathname, setPathname] = useState("");
-
-  const windowPathname = window.location.pathname;
+  const location = useLocation();
+  const isAuthPageAndPasscodePage =
+    location.pathname.includes("auth") ||
+    location.pathname.includes("passcode");
 
   const variants = {
     open: { opacity: 1, scale: 1, y: 20 },
     closed: { opacity: 0, scale: 0.9, y: 0 },
   };
-
-  useEffect(() => {
-    setPathname(windowPathname);
-  }, [windowPathname]);
-
-  const isAuthPage = pathname.includes("auth");
 
   return (
     <div className="">
@@ -31,7 +26,7 @@ const Navbar: React.FC = () => {
           </h1>
         </Link>
         {/* hamburger menu */}
-        {isAuthPage ? (
+        {isAuthPageAndPasscodePage ? (
           <p></p>
         ) : (
           <button

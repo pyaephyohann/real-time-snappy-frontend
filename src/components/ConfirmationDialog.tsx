@@ -60,7 +60,7 @@ const ConfirmationDialog = ({
 
               <div className="mt-[2rem] space-y-[1rem] text-sm text-gray-600">
                 <p className="text-[1.2rem]">{bodyText}</p>
-                <p className="text-red-500 font-medium mt-[2rem]">
+                <p className="text-red-500 font-medium mt-[3rem]">
                   This action cannot be undone!
                 </p>
               </div>
@@ -88,7 +88,7 @@ const ConfirmationDialog = ({
         </>
       )}
     </AnimatePresence>,
-    modalRoot
+    modalRoot,
   );
 };
 

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import Metadata from "../../components/Metadata";
 import { friendDatas } from "../../utils/datas";
 import { useNavigate } from "react-router-dom";
