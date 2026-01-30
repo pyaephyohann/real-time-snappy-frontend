@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { motion, AnimatePresence, Variants } from "framer-motion";
+import { toast } from "react-toastify";
 import CommentDrawer from "./CommentDrawer";
 import {
   FacebookShareButton,
@@ -10,14 +12,13 @@ import {
   ThreadsShareButton,
   ThreadsIcon,
 } from "react-share";
-import { motion, AnimatePresence, Variants } from "framer-motion";
 import { config } from "../../../config";
-import { toast } from "react-toastify";
 
 interface UploadedBy {
   id: number;
   url: string;
   name: string;
+  role?: string;
 }
 
 interface Props {
@@ -34,43 +35,28 @@ interface Reaction {
   reactionType: string;
 }
 
+// Framer motion variants
 const containerVariants: Variants = {
-  hidden: {
-    opacity: 0,
-    y: 10,
-  },
+  hidden: { opacity: 0, y: 10 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: {
-      staggerChildren: 0.07,
-      delayChildren: 0.05,
-    },
+    transition: { staggerChildren: 0.07, delayChildren: 0.05 },
   },
-  exit: {
-    opacity: 0,
-    y: 10,
-  },
+  exit: { opacity: 0, y: 10 },
 };
 
 const itemVariants: Variants = {
-  hidden: {
-    opacity: 0,
-    scale: 0.5,
-    y: 10,
-  },
+  hidden: { opacity: 0, scale: 0.5, y: 10 },
   visible: {
     opacity: 1,
     scale: 1,
     y: 0,
-    transition: {
-      type: "spring",
-      stiffness: 400,
-      damping: 20,
-    },
+    transition: { type: "spring", stiffness: 400, damping: 20 },
   },
 };
 
+// Reaction options
 const reactions: Reaction[] = [
   { label: "Like", emoji: "👍", reactionType: "like" },
   { label: "Love", emoji: "❤️", reactionType: "love" },
@@ -80,6 +66,7 @@ const reactions: Reaction[] = [
   { label: "Angry", emoji: "😡", reactionType: "angry" },
 ];
 
+// Like Icon
 const LikeOutlineIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -87,7 +74,7 @@ const LikeOutlineIcon = () => (
     viewBox="0 0 24 24"
     strokeWidth={1.5}
     stroke="currentColor"
-    className="size-4"
+    className="w-5 h-5"
   >
     <path
       strokeLinecap="round"
@@ -97,29 +84,25 @@ const LikeOutlineIcon = () => (
   </svg>
 );
 
-const SnapCard = ({ id, url, caption, uploadedBy, react }: Props) => {
+const SnapCard = ({ id, url, caption, uploadedBy }: Props) => {
   const [reaction, setReaction] = useState<Reaction | null>(null);
+  const [showReactions, setShowReactions] = useState(false);
+  const [showShareOptions, setShowShareOptions] = useState(false);
+  const [showMenuCard, setShowMenuCard] = useState(false);
+  const [openComments, setOpenComments] = useState(false);
 
-  const currentUserString = localStorage.getItem("currentUser");
-
-  const currentUser: any | null = currentUserString
-    ? JSON.parse(currentUserString)
+  const currentUser = localStorage.getItem("currentUser")
+    ? JSON.parse(localStorage.getItem("currentUser")!)
     : null;
 
   const logInToken = localStorage.getItem("logInToken");
 
-  const [showReactions, setShowReactions] = useState(false);
-  const [showShareOptions, setShowShareOptions] = useState(false);
-  const [showMenuCard, setShowMenuCard] = useState(false);
-
-  const [openComments, setOpenComments] = useState(false);
-
-  const handleReactToggele = async (reaction: Reaction) => {
+  // Reaction handler
+  const handleReactToggle = async (reaction: Reaction) => {
     if (!currentUser || !logInToken) {
       toast.error("Please sign in to react");
       return;
     }
-
     try {
       setReaction(reaction);
       setShowReactions(false);
@@ -138,10 +121,7 @@ const SnapCard = ({ id, url, caption, uploadedBy, react }: Props) => {
       });
 
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data?.message || "Failed to react");
-      }
+      if (!response.ok) throw new Error(data?.message || "Failed to react");
 
       toast.success(`You reacted with ${reaction.label} ${reaction.emoji}`);
     } catch (error: any) {
@@ -150,114 +130,82 @@ const SnapCard = ({ id, url, caption, uploadedBy, react }: Props) => {
   };
 
   return (
-    <div className="bg-snap-white p-4 w-fit rounded-md shadow relative">
+    <div className="bg-snap-white p-4 w-full max-w-xs sm:max-w-sm rounded-lg shadow-md relative mx-auto mb-6">
       {/* Top Bar */}
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-3">
         <div className="flex items-center gap-3">
           <img
-            alt={uploadedBy.name}
             src={uploadedBy.url}
-            className="w-9 h-9 rounded-full object-cover"
+            alt={uploadedBy.name}
+            className="w-10 h-10 rounded-full object-cover"
           />
-          <h2 className="text-sm font-semibold text-[0.8rem]">
-            {uploadedBy.name}
-          </h2>
+          <h2 className="text-sm font-semibold truncate">{uploadedBy.name}</h2>
         </div>
 
-        {/* Menu Card */}
-        {showMenuCard && (
-          <div className="absolute top-[3rem] right-[1rem] gradient-background rounded-md p-[0.5rem]">
-            {/* Edit Button */}
-            <button className="flex items-center w-[5.5rem] py-[0.5rem] px-[0.2rem] gap-1 hover:bg-snap-black hover:bg-opacity-30 rounded-md">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="#fff"
-                className="size-5"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
-                />
-              </svg>
-              <span className="text-snap-white">Edit</span>
-            </button>
-            {/* Delete Button */}
-            <button className="flex items-center py-[0.5rem] w-[5.5rem] px-[0.2rem] gap-1 hover:bg-snap-black hover:bg-opacity-30 rounded-md">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="#fff"
-                className="size-5"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
-                />
-              </svg>
-
-              <span className="text-snap-white">Delete</span>
-            </button>
-          </div>
-        )}
-        {/* Three Dot Menu */}
         {currentUser?.role === "admin" && (
-          <button onClick={() => setShowMenuCard(!showMenuCard)} className="">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="size-6"
+          <div className="relative">
+            <button
+              onClick={() => setShowMenuCard(!showMenuCard)}
+              className="p-1"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"
-              />
-            </svg>
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-6 h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"
+                />
+              </svg>
+            </button>
+
+            {showMenuCard && (
+              <div className="absolute top-8 right-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-md p-2 flex flex-col gap-2 z-20">
+                <button className="flex items-center gap-2 text-white hover:bg-black hover:bg-opacity-20 rounded-md p-1">
+                  Edit
+                </button>
+                <button className="flex items-center gap-2 text-white hover:bg-black hover:bg-opacity-20 rounded-md p-1">
+                  Delete
+                </button>
+              </div>
+            )}
+          </div>
         )}
       </div>
 
       {/* Image */}
       <img
-        className="w-[15rem] h-[15rem] object-cover rounded-md"
         src={url}
         alt={caption}
+        className="w-full h-60 sm:h-64 object-cover rounded-md"
       />
 
       {/* Caption */}
-      <p className="text-center mt-4 font-semibold text-sm gradient-color">
-        {caption}
-      </p>
+      {caption && (
+        <p className="text-center mt-2 font-medium text-sm text-gray-800">
+          {caption}
+        </p>
+      )}
 
       {/* Divider */}
-      <div className="border-t mt-4" />
+      <div className="border-t mt-3" />
 
       {/* Action Bar */}
-      <div className="flex justify-around items-center mt-2 text-sm text-gray-600 relative">
+      <div className="flex justify-around items-center mt-2 text-sm relative">
         {/* Like / Reaction */}
         <div
           className="relative"
-          onMouseEnter={() => {
-            setShowReactions(true);
-            setShowShareOptions(false);
-          }}
+          onMouseEnter={() => setShowReactions(true)}
           onMouseLeave={() => setShowReactions(false)}
         >
           <button
             disabled={!currentUser}
-            className={`flex items-center gap-1 hover:text-primary ${
-              !currentUser ? "opacity-50 cursor-not-allowed" : ""
-            }`}
+            className={`flex items-center gap-1 ${!currentUser ? "opacity-50 cursor-not-allowed" : "hover:text-primary"}`}
           >
             {reaction ? (
               <>
@@ -272,7 +220,6 @@ const SnapCard = ({ id, url, caption, uploadedBy, react }: Props) => {
             )}
           </button>
 
-          {/* Reaction Popup */}
           <AnimatePresence>
             {showReactions && (
               <motion.div
@@ -289,7 +236,7 @@ const SnapCard = ({ id, url, caption, uploadedBy, react }: Props) => {
                     className="text-xl"
                     whileHover={{ scale: 1.3 }}
                     whileTap={{ scale: 1.5 }}
-                    onClick={() => handleReactToggele(rea)}
+                    onClick={() => handleReactToggle(rea)}
                   >
                     {rea.emoji}
                   </motion.button>
@@ -304,24 +251,8 @@ const SnapCard = ({ id, url, caption, uploadedBy, react }: Props) => {
           onClick={() => setOpenComments(true)}
           className="flex items-center gap-1 hover:text-primary"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="size-4"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z"
-            />
-          </svg>
-          <span>Comment</span>
+          <span>💬 Comment</span>
         </button>
-
-        {/* Comment Drawer */}
 
         <CommentDrawer
           open={openComments}
@@ -329,32 +260,18 @@ const SnapCard = ({ id, url, caption, uploadedBy, react }: Props) => {
         />
 
         {/* Share */}
-        <button
-          onClick={() => {
-            setShowShareOptions(!showShareOptions);
-          }}
-          className="flex items-center gap-1 hover:text-primary"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="size-4"
+        <div className="relative">
+          <button
+            onClick={() => setShowShareOptions(!showShareOptions)}
+            className="flex items-center gap-1 hover:text-primary"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M9 8.25H7.5a2.25 2.25 0 0 0-2.25 2.25v9a2.25 2.25 0 0 0 2.25 2.25h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15m0-3-3-3m0 0-3 3m3-3V15"
-            />
-          </svg>
+            <span>🔗 Share</span>
+          </button>
 
-          <span>Share</span>
           <AnimatePresence>
             {showShareOptions && (
               <motion.div
-                className="absolute bottom-[2.1rem] right-0 bg-white shadow-lg rounded-full px-3 py-2 flex gap-2 z-10"
+                className="absolute bottom-8 right-0 bg-white shadow-lg rounded-full px-3 py-2 flex gap-2 z-10"
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
@@ -365,19 +282,16 @@ const SnapCard = ({ id, url, caption, uploadedBy, react }: Props) => {
                     <FacebookIcon size={28} round />
                   </FacebookShareButton>
                 </motion.div>
-
                 <motion.div variants={itemVariants}>
                   <ViberShareButton url={url}>
                     <ViberIcon size={28} round />
                   </ViberShareButton>
                 </motion.div>
-
                 <motion.div variants={itemVariants}>
                   <TelegramShareButton url={url}>
                     <TelegramIcon size={28} round />
                   </TelegramShareButton>
                 </motion.div>
-
                 <motion.div variants={itemVariants}>
                   <ThreadsShareButton url={url}>
                     <ThreadsIcon size={28} round />
@@ -386,7 +300,7 @@ const SnapCard = ({ id, url, caption, uploadedBy, react }: Props) => {
               </motion.div>
             )}
           </AnimatePresence>
-        </button>
+        </div>
       </div>
     </div>
   );
