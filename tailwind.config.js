@@ -17,6 +17,9 @@ module.exports = {
         bold: "700",
         extrabold: "800",
       },
+      backdropBlur: {
+        xs: "2px",
+      },
     },
   },
   plugins: [],

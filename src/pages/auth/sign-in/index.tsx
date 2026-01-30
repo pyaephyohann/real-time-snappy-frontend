@@ -3,6 +3,7 @@ import Button from "../../../components/Button";
 import { config } from "../../../config";
 import Metadata from "../../../components/Metadata";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 interface SignUpData {
   name: string;
@@ -20,22 +21,34 @@ const SignIn = () => {
   const navigate = useNavigate();
 
   const handleSignIn = async () => {
-    setIsLoading(true);
-    const response = await fetch(`${config.apiBaseUrl}/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify(formData),
-    });
-    const responseJson = await response.json();
-    const { token } = responseJson;
-    localStorage.setItem("logInToken", token);
-    if (response.ok) {
+    try {
+      setIsLoading(true);
+
+      const response = await fetch(`${config.apiBaseUrl}/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(formData),
+      });
+
+      const responseJson = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseJson?.message || "Invalid email or password");
+      }
+
+      const { token } = responseJson;
+
+      localStorage.setItem("logInToken", token);
+
+      toast.success("Signed in successfully 🎉");
       navigate("/passcode");
+    } catch (error: any) {
+      toast.error(error.message || "Something went wrong");
+    } finally {
       setIsLoading(false);
-    } else {
     }
   };
 
@@ -51,7 +64,6 @@ const SignIn = () => {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     handleSignIn();
   };
 
@@ -98,7 +110,9 @@ const SignIn = () => {
           buttonClassName="w-full"
           title="Sign In"
           isLoading={isLoading}
+          isDisabled={isLoading}
         />
+
         <p className="text-snap-black text-[1rem] mt-[1.5rem] text-center">
           New here?{" "}
           <span className="gradient-color">

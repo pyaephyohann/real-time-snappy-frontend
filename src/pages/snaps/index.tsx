@@ -8,6 +8,7 @@ import Metadata from "../../components/Metadata";
 import { motion, Variants } from "framer-motion";
 import { useEffect, useRef } from "react";
 import SnapCard from "./components/SnapCard";
+import { toast } from "react-toastify";
 
 const containerVariants: Variants = {
   hidden: {},
@@ -18,29 +19,29 @@ const containerVariants: Variants = {
   },
 };
 
-const itemVariants: Variants = {
-  hidden: ({
-    direction,
-    depth,
-  }: {
-    direction: "up" | "down";
-    depth: number;
-  }) => ({
-    opacity: 0,
-    y: direction === "down" ? depth : -depth,
-    scale: 0.9,
-  }),
+// const itemVariants: Variants = {
+//   hidden: ({
+//     direction,
+//     depth,
+//   }: {
+//     direction: "up" | "down";
+//     depth: number;
+//   }) => ({
+//     opacity: 0,
+//     y: direction === "down" ? depth : -depth,
+//     scale: 0.9,
+//   }),
 
-  show: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      duration: 0.55,
-      ease: "easeOut" as const,
-    },
-  },
-};
+//   show: {
+//     opacity: 1,
+//     y: 0,
+//     scale: 1,
+//     transition: {
+//       duration: 0.55,
+//       ease: "easeOut" as const,
+//     },
+//   },
+// };
 
 const Snaps = () => {
   const [openNewImage, setOpenNewImage] = useState<boolean>(false);
@@ -48,17 +49,17 @@ const Snaps = () => {
   const [currentUsersSnaps, setCurrentUsersSnaps] = useState<any[]>([]);
 
   const lastScrollY = useRef(0);
-  const [scrollDirection, setScrollDirection] = useState<"up" | "down">("down");
+  // const [scrollDirection, setScrollDirection] = useState<"up" | "down">("down");
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
 
-      if (currentScrollY > lastScrollY.current) {
-        setScrollDirection("down");
-      } else {
-        setScrollDirection("up");
-      }
+      // if (currentScrollY > lastScrollY.current) {
+      //   setScrollDirection("down");
+      // } else {
+      //   setScrollDirection("up");
+      // }
 
       if (Math.abs(currentScrollY - lastScrollY.current) < 10) return;
 
@@ -76,17 +77,40 @@ const Snaps = () => {
   const loginToken = localStorage.getItem("logInToken");
 
   const handleImageUpload = async () => {
-    await fetch(`${config.apiBaseUrl}/images/upload`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${loginToken}`,
-      },
-      body: JSON.stringify({}),
-    });
+    if (!loginToken) {
+      toast.error("Please sign in to upload images");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${config.apiBaseUrl}/images/upload`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${loginToken}`,
+        },
+        body: JSON.stringify({}),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.message || "Image upload failed");
+      }
+
+      toast.success("Image uploaded successfully 📸");
+      handleGetAllImagesByUserId();
+    } catch (error: any) {
+      toast.error(error.message || "Something went wrong");
+    }
   };
 
   const handleGetAllImagesByUserId = useCallback(async () => {
+    if (!loginToken) {
+      toast.error("Please sign in to view snaps");
+      return;
+    }
+
     try {
       const response = await fetch(
         `${config.apiBaseUrl}/users/${userId}/images`,
@@ -97,10 +121,16 @@ const Snaps = () => {
           },
         },
       );
+
       const responseJson = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseJson?.message || "Failed to load snaps");
+      }
+
       setCurrentUsersSnaps(responseJson.datas.data);
-    } catch (error) {
-      return alert("Error getting images!");
+    } catch (error: any) {
+      // toast.error(error.message || "Error getting images");
     }
   }, [loginToken, userId]);
 
@@ -122,7 +152,14 @@ const Snaps = () => {
       <Metadata title={`${currentUser.name}'s Snaps`} />
 
       <div className="fixed right-20 top-[10rem]">
-        <Button callBack={() => setOpenNewImage(true)} title="+ Add New" />
+        <Button
+          callBack={() =>
+            loginToken
+              ? setOpenNewImage(true)
+              : toast.error("Please sign in to upload")
+          }
+          title="+ Add New"
+        />
       </div>
 
       {/* Profile */}
@@ -137,34 +174,40 @@ const Snaps = () => {
         </h2>
       </div>
 
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ amount: 0.2 }}
-        className="grid grid-cols-[repeat(auto-fit,15rem)] justify-center gap-8 mt-[3rem]"
-      >
-        {currentUsersSnaps.map((snap, index) => (
-          <motion.div
-            variants={itemVariants}
-            custom={{
-              direction: scrollDirection,
-              depth: 60,
-            }}
-            key={snap.id}
-            className="my-[2rem]"
-          >
-            <SnapCard
-              id={snap.id}
-              url={snap.url}
-              caption={snap.caption}
-              uploadedBy={snap.uploaded_by}
-            />
-          </motion.div>
-        ))}
-      </motion.div>
+      {!currentUsersSnaps.length ? (
+        <p className="text-center text-[2rem] font-bold mt-[5rem] text-snap-white opacity-70 col-span-full">
+          No snaps yet 📭
+        </p>
+      ) : (
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ amount: 0.2 }}
+          className="grid grid-cols-[repeat(auto-fit,15rem)] justify-center gap-8 mt-[3rem]"
+        >
+          {currentUsersSnaps.map((snap, index) => (
+            <div
+              // variants={itemVariants}
+              // custom={{
+              //   direction: scrollDirection,
+              //   depth: 60,
+              // }}
+              key={snap.id}
+              className="my-[2rem]"
+            >
+              <SnapCard
+                id={snap.id}
+                url={snap.url}
+                caption={snap.caption}
+                uploadedBy={snap.uploaded_by}
+              />
+            </div>
+          ))}
+        </motion.div>
+      )}
 
-      <div className="flex justify-center mb-[5rem]">
+      {/* <div className="flex justify-center mb-[5rem]">
         <SnapCard
           id={1}
           url="https://i.pinimg.com/474x/3e/79/2f/3e792f2f83eeec7745a6f1862567c5e7.jpg"
@@ -172,11 +215,10 @@ const Snaps = () => {
           uploadedBy={{
             id: 1,
             name: "Ko Kyaw Gyi",
-            avatar_url:
-              "https://i.pinimg.com/736x/62/6b/91/626b91460049992c732ae71917de14ed.jpg",
+            url: "https://i.pinimg.com/736x/62/6b/91/626b91460049992c732ae71917de14ed.jpg",
           }}
         />
-      </div>
+      </div> */}
 
       <NewImage
         open={openNewImage}

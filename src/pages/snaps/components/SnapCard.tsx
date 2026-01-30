@@ -12,10 +12,11 @@ import {
 } from "react-share";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { config } from "../../../config";
+import { toast } from "react-toastify";
 
 interface UploadedBy {
   id: number;
-  avatar_url: string;
+  url: string;
   name: string;
 }
 
@@ -99,8 +100,6 @@ const LikeOutlineIcon = () => (
 const SnapCard = ({ id, url, caption, uploadedBy, react }: Props) => {
   const [reaction, setReaction] = useState<Reaction | null>(null);
 
-  console.log(uploadedBy.avatar_url);
-
   const currentUserString = localStorage.getItem("currentUser");
 
   const currentUser: any | null = currentUserString
@@ -116,22 +115,37 @@ const SnapCard = ({ id, url, caption, uploadedBy, react }: Props) => {
   const [openComments, setOpenComments] = useState(false);
 
   const handleReactToggele = async (reaction: Reaction) => {
-    setReaction(reaction);
-    setShowReactions(false);
-    const response = await fetch(`${config.apiBaseUrl}/reactions/toggle`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${logInToken}`,
-      },
-      body: JSON.stringify({
-        image_id: id,
-        reaction_type: reaction.reactionType,
-        user_id: currentUser.id,
-      }),
-    });
-    if (response.ok) {
-      return alert("Ogayyyy!");
+    if (!currentUser || !logInToken) {
+      toast.error("Please sign in to react");
+      return;
+    }
+
+    try {
+      setReaction(reaction);
+      setShowReactions(false);
+
+      const response = await fetch(`${config.apiBaseUrl}/reactions/toggle`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${logInToken}`,
+        },
+        body: JSON.stringify({
+          image_id: id,
+          reaction_type: reaction.reactionType,
+          user_id: currentUser.id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.message || "Failed to react");
+      }
+
+      toast.success(`You reacted with ${reaction.label} ${reaction.emoji}`);
+    } catch (error: any) {
+      toast.error(error.message || "Something went wrong");
     }
   };
 
@@ -142,7 +156,7 @@ const SnapCard = ({ id, url, caption, uploadedBy, react }: Props) => {
         <div className="flex items-center gap-3">
           <img
             alt={uploadedBy.name}
-            src={uploadedBy.avatar_url}
+            src={uploadedBy.url}
             className="w-9 h-9 rounded-full object-cover"
           />
           <h2 className="text-sm font-semibold text-[0.8rem]">
@@ -193,7 +207,7 @@ const SnapCard = ({ id, url, caption, uploadedBy, react }: Props) => {
           </div>
         )}
         {/* Three Dot Menu */}
-        {currentUser.role === "admin" && (
+        {currentUser?.role === "admin" && (
           <button onClick={() => setShowMenuCard(!showMenuCard)} className="">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -239,7 +253,12 @@ const SnapCard = ({ id, url, caption, uploadedBy, react }: Props) => {
           }}
           onMouseLeave={() => setShowReactions(false)}
         >
-          <button className="flex items-center gap-1 hover:text-primary">
+          <button
+            disabled={!currentUser}
+            className={`flex items-center gap-1 hover:text-primary ${
+              !currentUser ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
             {reaction ? (
               <>
                 <span className="text-lg">{reaction.emoji}</span>
@@ -311,7 +330,9 @@ const SnapCard = ({ id, url, caption, uploadedBy, react }: Props) => {
 
         {/* Share */}
         <button
-          onClick={() => setShowShareOptions(!showShareOptions)}
+          onClick={() => {
+            setShowShareOptions(!showShareOptions);
+          }}
           className="flex items-center gap-1 hover:text-primary"
         >
           <svg
