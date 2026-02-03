@@ -4,11 +4,12 @@ import { motion, Variants } from "framer-motion";
 import { toast } from "react-toastify";
 
 import { friendDatas } from "../../utils/datas";
-import Button from "../../components/Button";
 import Metadata from "../../components/Metadata";
 import SnapCard from "./components/SnapCard";
 import NewImage from "./components/NewImage";
 import { config } from "../../config";
+import NewButton from "./components/NewButton";
+import ThoughtBubble from "../../components/ThoughtBubble";
 
 const containerVariants: Variants = {
   hidden: {},
@@ -23,6 +24,7 @@ const Snaps = () => {
   const { userId } = useParams();
   const [openNewImage, setOpenNewImage] = useState(false);
   const [currentUsersSnaps, setCurrentUsersSnaps] = useState<any[]>([]);
+  const [showButtonFunMessage, setShowButtonFunMessage] = useState(false);
 
   const lastScrollY = useRef(0);
   const loginToken = localStorage.getItem("logInToken");
@@ -124,8 +126,11 @@ const Snaps = () => {
         z-50
       "
       >
-        <Button
-          title="+ Add New"
+        <div className="absolute top-0 right-0">
+          <ThoughtBubble text="You can drag and play  >_<" />
+        </div>
+        <NewButton
+          title="+"
           callBack={() =>
             loginToken
               ? setOpenNewImage(true)
