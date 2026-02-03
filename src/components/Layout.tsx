@@ -2,6 +2,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { ToastContainer } from "react-toastify";
 import SplashScreen from "./SplashScreen";
 import Navbar from "./Navbar";
+import { useLocation } from "react-router-dom";
 
 interface Props {
   children: ReactNode;
@@ -10,9 +11,9 @@ interface Props {
 const Layout = ({ children }: Props) => {
   const [showSplash, setShowSplash] = useState(true);
 
-  const windowPathname = window.location.pathname;
+  const location = useLocation();
 
-  const isLandingPage = windowPathname === "/";
+  const isLandingPage = location.pathname === "/";
 
   useEffect(() => {
     const timer = setTimeout(() => {
