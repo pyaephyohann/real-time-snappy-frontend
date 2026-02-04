@@ -9,7 +9,6 @@ import SnapCard from "./components/SnapCard";
 import NewImage from "./components/NewImage";
 import { config } from "../../config";
 import NewButton from "./components/NewButton";
-import ThoughtBubble from "../../components/ThoughtBubble";
 
 const containerVariants: Variants = {
   hidden: {},
@@ -24,15 +23,15 @@ const Snaps = () => {
   const { userId } = useParams();
   const [openNewImage, setOpenNewImage] = useState(false);
   const [currentUsersSnaps, setCurrentUsersSnaps] = useState<any[]>([]);
-  const [showButtonFunMessage, setShowButtonFunMessage] = useState(false);
-
   const lastScrollY = useRef(0);
+
   const loginToken = localStorage.getItem("logInToken");
 
   const currentUser = friendDatas.find(
     (friend) => friend.id === Number(userId),
   );
 
+  /* Scroll tracker (future use / animations) */
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -44,6 +43,7 @@ const Snaps = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  /* Fetch user images */
   const handleGetAllImagesByUserId = useCallback(async () => {
     if (!loginToken) return;
 
@@ -65,7 +65,7 @@ const Snaps = () => {
       }
 
       setCurrentUsersSnaps(responseJson.datas.data);
-    } catch (error: any) {
+    } catch {
       // silent fail
     }
   }, [loginToken, userId]);
@@ -74,6 +74,7 @@ const Snaps = () => {
     handleGetAllImagesByUserId();
   }, [handleGetAllImagesByUserId]);
 
+  /* Upload handler */
   const handleImageUpload = async () => {
     if (!loginToken) {
       toast.error("Please sign in to upload images");
@@ -120,15 +121,12 @@ const Snaps = () => {
       {/* Floating Add Button */}
       <div
         className="
-        fixed
-        bottom-6 right-6
-        sm:bottom-8 sm:right-8
-        z-50
-      "
+          fixed
+          bottom-6 right-6
+          sm:bottom-8 sm:right-8
+          z-50
+        "
       >
-        <div className="absolute top-0 right-0">
-          <ThoughtBubble text="You can drag and play  >_<" />
-        </div>
         <NewButton
           title="+"
           callBack={() =>
@@ -155,13 +153,13 @@ const Snaps = () => {
         />
         <h2
           className="
-          text-lg
-          sm:text-xl
-          lg:text-2xl
-          font-semibold
-          text-snap-white
-          text-center
-        "
+            text-lg
+            sm:text-xl
+            lg:text-2xl
+            font-semibold
+            text-snap-white
+            text-center
+          "
         >
           {currentUser.name}
         </h2>
@@ -171,13 +169,13 @@ const Snaps = () => {
       {!currentUsersSnaps.length ? (
         <p
           className="
-          text-center
-          text-xl sm:text-2xl
-          font-bold
-          mt-16
-          text-snap-white
-          opacity-70
-        "
+            text-center
+            text-xl sm:text-2xl
+            font-bold
+            mt-16
+            text-snap-white
+            opacity-70
+          "
         >
           No snaps yet 📭
         </p>

@@ -1,14 +1,15 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Loading from "../../../components/Loading";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
+import ThoughtBubble from "../../../components/ThoughtBubble";
 
 interface Props {
-  title: string;
   buttonClassName?: string;
+  title: string;
   isLoading?: boolean;
   lightningDuration?: number;
   isDisabled?: boolean;
-  callBack?: () => void;
+  callBack: () => void;
 }
 
 const NewButton = ({
@@ -20,17 +21,50 @@ const NewButton = ({
   callBack,
 }: Props) => {
   const draggedRef = useRef(false);
+  const [hovering, setHovering] = useState(false);
+  const [showBubble, setShowBubble] = useState(false);
+
+  // bubble loop: 2s show / 5s hide
+  useEffect(() => {
+    if (!hovering) {
+      setShowBubble(false);
+      return;
+    }
+
+    let showTimer: NodeJS.Timeout;
+    let hideTimer: NodeJS.Timeout;
+
+    const loop = () => {
+      setShowBubble(true);
+
+      showTimer = setTimeout(() => {
+        setShowBubble(false);
+      }, 2000);
+
+      hideTimer = setTimeout(() => {
+        loop();
+      }, 7000);
+    };
+
+    loop();
+
+    return () => {
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+    };
+  }, [hovering]);
 
   return (
     <motion.button
       drag
-      dragMomentum={true}
+      dragMomentum
       dragElastic={0.15}
       dragTransition={{
         power: 0.3,
         timeConstant: 300,
-        modifyTarget: (target) => target,
       }}
+      onHoverStart={() => setHovering(true)}
+      onHoverEnd={() => setHovering(false)}
       onDragStart={() => {
         draggedRef.current = false;
       }}
@@ -39,16 +73,11 @@ const NewButton = ({
           draggedRef.current = true;
         }
       }}
-      onDragEnd={(event, info) => {
-        console.log("Throw velocity:", info.velocity);
-      }}
       whileTap={{ cursor: "grabbing" }}
       onClick={() => {
-        // only run callback if it wasn't dragged
         if (!draggedRef.current) {
           callBack?.();
         }
-        // reset for next click
         draggedRef.current = false;
       }}
       className={`
@@ -58,11 +87,28 @@ const NewButton = ({
         gradient-background
         flex items-center justify-center
         text-white font-semibold
-        overflow-hidden
+        overflow-visible
         ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}
         ${buttonClassName}
       `}
     >
+      {/* Thought bubble */}
+      <AnimatePresence>
+        {showBubble && (
+          <motion.div
+            className="absolute -top-[7rem] -right-[2rem] translate-x-1/2 pointer-events-none"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 6 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="animate-float">
+              <ThoughtBubble text="You can drag and play >_<" />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Lightning border */}
       <motion.span
         className="absolute inset-0 rounded-full"

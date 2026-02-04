@@ -107,18 +107,21 @@ const SnapCard = ({ id, url, caption, uploadedBy }: Props) => {
       setReaction(reaction);
       setShowReactions(false);
 
-      const response = await fetch(`${config.apiBaseUrl}/reactions/toggle`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${logInToken}`,
+      const response = await fetch(
+        `${config.apiBaseUrl}/images/${id}/reactions`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${logInToken}`,
+          },
+          body: JSON.stringify({
+            image_id: id,
+            reaction_type: reaction.reactionType,
+            user_id: currentUser.id,
+          }),
         },
-        body: JSON.stringify({
-          image_id: id,
-          reaction_type: reaction.reactionType,
-          user_id: currentUser.id,
-        }),
-      });
+      );
 
       const data = await response.json();
       if (!response.ok) throw new Error(data?.message || "Failed to react");
