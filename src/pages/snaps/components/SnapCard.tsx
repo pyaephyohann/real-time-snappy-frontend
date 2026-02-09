@@ -42,6 +42,7 @@ interface Props {
   uploadedBy: UploadedBy;
   reactions_count: number;
   reactions: ServerReaction[];
+  comments: any[];
 }
 
 /* ===================== MOTION ===================== */
@@ -105,6 +106,7 @@ const SnapCard = ({
   uploadedBy,
   reactions_count,
   reactions,
+  comments,
 }: Props) => {
   const currentUser = localStorage.getItem("currentUser")
     ? JSON.parse(localStorage.getItem("currentUser")!)
@@ -294,6 +296,7 @@ const SnapCard = ({
           open={openComments}
           onClose={() => setOpenComments(false)}
           imageId={id}
+          comments={comments}
         />
 
         {/* Share */}

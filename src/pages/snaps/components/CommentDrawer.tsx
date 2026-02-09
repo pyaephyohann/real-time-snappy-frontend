@@ -13,35 +13,37 @@ interface Comment {
   id: number;
   comment: string;
   created_at: string;
-  user: User;
+  user?: User; // 🔐 optional for safety
 }
 
 interface CommentDrawerProps {
   open: boolean;
   onClose: () => void;
-  datas?: any[];
+  comments: Comment[];
   imageId: number;
 }
+
+const CURRENT_USER: User = {
+  id: 1,
+  name: "Test User",
+  avatar_url:
+    "https://storage.googleapis.com/yee-sarr-sar.appspot.com/temp/temp_0ec4QDjHvxF7LgpqtcwK9BG0zTZG0C.webp",
+};
 
 const CommentDrawer = ({
   open,
   onClose,
   imageId,
-  datas,
+  comments,
 }: CommentDrawerProps) => {
-  const [comments, setComments] = useState<Comment[]>([]);
+  const [commentsList, setCommentsList] = useState<Comment[]>([]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 🔹 Fetch comments
+  // 🔹 Sync comments from parent
   useEffect(() => {
-    if (!open) return;
-
-    fetch(`${config.apiBaseUrl}/images/${imageId}/comments`)
-      .then((res) => res.json())
-      .then((data) => setComments(data.datas))
-      .catch(console.error);
-  }, [open, imageId]);
+    setCommentsList(comments);
+  }, [comments]);
 
   // 🔹 Create comment
   const handleSend = async () => {
@@ -56,7 +58,6 @@ const CommentDrawer = ({
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            // Authorization: `Bearer ${token}`, // if needed
           },
           body: JSON.stringify({ content: text }),
         },
@@ -64,7 +65,12 @@ const CommentDrawer = ({
 
       const data = await res.json();
 
-      setComments((prev) => [...prev, data.datas]);
+      const newComment: Comment = {
+        ...data.datas,
+        user: CURRENT_USER, // ✅ inject user to avoid crash
+      };
+
+      setCommentsList((prev) => [...prev, newComment]);
       setText("");
     } catch (err) {
       console.error(err);
@@ -104,7 +110,7 @@ const CommentDrawer = ({
 
             {/* Comments List */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {comments.map((c) => (
+              {commentsList.map((c) => (
                 <motion.div
                   key={c.id}
                   initial={{ opacity: 0, y: 6 }}
@@ -112,8 +118,11 @@ const CommentDrawer = ({
                   className="flex gap-2"
                 >
                   <img
-                    src={c.user.avatar_url}
-                    alt={c.user.name}
+                    src={
+                      c.user?.avatar_url ??
+                      "https://ui-avatars.com/api/?name=User"
+                    }
+                    alt={c.user?.name ?? "User"}
                     className="w-8 h-8 rounded-full"
                   />
 
