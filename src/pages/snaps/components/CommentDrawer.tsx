@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CancelButton from "../../../components/CancelButton";
 import { config } from "../../../config";
+import { logInToken } from "../../../utils";
 
 interface User {
   id: number;
@@ -58,6 +59,7 @@ const CommentDrawer = ({
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${logInToken}`,
           },
           body: JSON.stringify({ content: text }),
         },
