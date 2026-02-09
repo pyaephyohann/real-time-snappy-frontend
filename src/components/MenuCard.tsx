@@ -31,7 +31,7 @@ const MenuCard = ({ setOpen }: Props) => {
       <Link
         onClick={() => setOpen(false)}
         className="font-bold gradient-color hover:opacity-80 flex space-x-[0.6rem] items-center"
-        to={`/`}
+        to={`/home`}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

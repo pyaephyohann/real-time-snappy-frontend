@@ -293,6 +293,7 @@ const SnapCard = ({
         <CommentDrawer
           open={openComments}
           onClose={() => setOpenComments(false)}
+          imageId={id}
         />
 
         {/* Share */}

@@ -9,7 +9,8 @@ const Navbar: React.FC = () => {
   const location = useLocation();
   const isAuthPageAndPasscodePage =
     location.pathname.includes("auth") ||
-    location.pathname.includes("passcode");
+    location.pathname.includes("passcode") ||
+    location.pathname.includes("verify-email");
 
   const variants = {
     open: { opacity: 1, scale: 1, y: 20 },
