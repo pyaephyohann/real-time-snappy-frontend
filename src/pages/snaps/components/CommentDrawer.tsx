@@ -61,7 +61,7 @@ const CommentDrawer = ({
             "Content-Type": "application/json",
             Authorization: `Bearer ${logInToken}`,
           },
-          body: JSON.stringify({ content: text }),
+          body: JSON.stringify({ comment: text }),
         },
       );
 
