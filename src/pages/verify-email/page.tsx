@@ -6,13 +6,13 @@ import Loading from "../../components/Loading";
 const VerifyEmail: React.FC = () => {
   const navigate = useNavigate();
 
-  // useEffect(() => {
-  //   const timer = setTimeout(() => {
-  //     navigate("/auth/sign-in");
-  //   }, 3000);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigate("/auth/sign-in");
+    }, 3000);
 
-  //   return () => clearTimeout(timer);
-  // }, [navigate]);
+    return () => clearTimeout(timer);
+  }, [navigate]);
 
   return (
     <div className="flex items-center justify-center text-snap-white mt-[15rem]">
