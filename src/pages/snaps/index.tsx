@@ -202,6 +202,8 @@ const Snaps = () => {
                 url={snap.url}
                 caption={snap.caption}
                 uploadedBy={snap.uploaded_by}
+                reactions_count={snap.reactions_count}
+                reactions={snap.reactions}
               />
             </div>
           ))}

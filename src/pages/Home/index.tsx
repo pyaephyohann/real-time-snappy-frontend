@@ -4,11 +4,12 @@ import { friendDatas } from "../../utils/datas";
 import { useNavigate } from "react-router-dom";
 import ThoughtBubble from "../../components/ThoughtBubble";
 import { config } from "../../config";
+import SnapCard from "../snaps/components/SnapCard";
 
 const Home = () => {
   const navigate = useNavigate();
   const [hoveredId, setHoveredId] = useState(0);
-  const [shuffledSnaps, setShuffledSnaps] = useState([]);
+  const [shuffledSnaps, setShuffledSnaps] = useState<any>([]);
 
   const shuffleArray = (array: []) => {
     const shuffled = [...array];
@@ -43,8 +44,6 @@ const Home = () => {
     }
   }, [logInToken]);
 
-  console.log(shuffledSnaps);
-
   useEffect(() => {
     handleGetAllSnaps();
   }, [handleGetAllSnaps]);
@@ -52,7 +51,7 @@ const Home = () => {
   return (
     <div>
       <Metadata title="Snappy | Welcome Home" />
-
+      {/* Friend Datas */}
       <div className="flex w-[70%] mx-auto mt-[11rem] space-x-[1rem] justify-center">
         {friendDatas.map((ele) => (
           <div
@@ -76,6 +75,48 @@ const Home = () => {
             </div>
           </div>
         ))}
+      </div>
+      {/* Snaps */}
+      <div className="p-[3rem]">
+        {!shuffledSnaps.length ? (
+          <p
+            className="
+            text-center
+            text-xl sm:text-2xl
+            font-bold
+            mt-16
+            text-snap-white
+            opacity-70
+          "
+          >
+            No snaps yet 📭
+          </p>
+        ) : (
+          <div
+            className="
+            grid
+            grid-cols-1
+            sm:grid-cols-2
+            md:grid-cols-3
+            lg:grid-cols-4
+            gap-6
+            justify-center
+          "
+          >
+            {shuffledSnaps.map((snap: any) => (
+              <div key={snap.id} className="flex justify-center">
+                <SnapCard
+                  id={snap.id}
+                  url={snap.url}
+                  caption={snap.caption}
+                  uploadedBy={snap.uploaded_by}
+                  reactions_count={snap.reactions_count}
+                  reactions={snap.reactions}
+                />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
