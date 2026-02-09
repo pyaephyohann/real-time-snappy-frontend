@@ -20,10 +20,11 @@ function Router() {
           <Route path="/most-popular" element={<MostPopular />} />
           <Route path="/passcode" element={<Passcode />} />
           <Route path="/collections" element={<Collections />} />
-          <Route path="/verify-email" element={<VerifyEmail />} />
+
           <Route path="*" element={<h1>Not Found</h1>} />
         </Route>
         <Route path="/" element={<Landing />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/auth/sign-up" element={<SignUp />} />
         <Route path="/auth/sign-in" element={<SignIn />} />
       </Routes>
