@@ -5,12 +5,6 @@ import { logInToken } from "../utils";
 
 /* ================= TYPES ================= */
 
-interface User {
-  id: number;
-  name: string;
-  avatar_url?: string;
-}
-
 interface Reply {
   id: number;
   comment: string;
