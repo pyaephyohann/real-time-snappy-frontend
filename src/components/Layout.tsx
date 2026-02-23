@@ -3,6 +3,7 @@ import { ToastContainer } from "react-toastify";
 import SplashScreen from "./SplashScreen";
 import Navbar from "./Navbar";
 import { useLocation } from "react-router-dom";
+import { currentUser } from "../utils";
 
 interface Props {
   children: ReactNode;
@@ -23,6 +24,8 @@ const Layout = ({ children }: Props) => {
     return () => clearTimeout(timer);
   }, []);
 
+  console.log(currentUser);
+
   if (showSplash)
     return (
       <div>
@@ -33,11 +36,7 @@ const Layout = ({ children }: Props) => {
   return (
     <div>
       <ToastContainer />
-      {!isLandingPage && (
-        <div className="w-[80%] mx-auto fixed top-0 left-0 right-0 z-50">
-          <Navbar />
-        </div>
-      )}
+      {!isLandingPage && <Navbar />}
       <div className={`${isLandingPage ? "" : "mt-[9rem]"}`}>{children}</div>
     </div>
   );

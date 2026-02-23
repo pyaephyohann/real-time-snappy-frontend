@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import CancelButton from "../../../components/CancelButton";
 import { config } from "../../../config";
 import { logInToken } from "../../../utils";
+import CommentItem from "../../../components/CommentItem";
 
 interface User {
   id: number;
@@ -14,7 +15,8 @@ interface Comment {
   id: number;
   comment: string;
   created_at: string;
-  user?: User; // 🔐 optional for safety
+  user?: User;
+  replies: any;
 }
 
 interface CommentDrawerProps {
@@ -23,13 +25,6 @@ interface CommentDrawerProps {
   comments: Comment[];
   imageId: number;
 }
-
-const CURRENT_USER: User = {
-  id: 1,
-  name: "Test User",
-  avatar_url:
-    "https://storage.googleapis.com/yee-sarr-sar.appspot.com/temp/temp_0ec4QDjHvxF7LgpqtcwK9BG0zTZG0C.webp",
-};
 
 const CommentDrawer = ({
   open,
@@ -40,6 +35,12 @@ const CommentDrawer = ({
   const [commentsList, setCommentsList] = useState<Comment[]>([]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const currentUserString = localStorage.getItem("currentUser");
+
+  const currentUser: any | null = currentUserString
+    ? JSON.parse(currentUserString)
+    : null;
 
   // 🔹 Sync comments from parent
   useEffect(() => {
@@ -61,7 +62,11 @@ const CommentDrawer = ({
             "Content-Type": "application/json",
             Authorization: `Bearer ${logInToken}`,
           },
-          body: JSON.stringify({ comment: text }),
+          body: JSON.stringify({
+            comment: text,
+            parent_id: null,
+            user_id: currentUser.id,
+          }),
         },
       );
 
@@ -69,7 +74,7 @@ const CommentDrawer = ({
 
       const newComment: Comment = {
         ...data.datas,
-        user: CURRENT_USER, // ✅ inject user to avoid crash
+        user: currentUser,
       };
 
       setCommentsList((prev) => [...prev, newComment]);
@@ -119,32 +124,32 @@ const CommentDrawer = ({
                   animate={{ opacity: 1, y: 0 }}
                   className="flex gap-2"
                 >
-                  <img
-                    src={
-                      c.user?.avatar_url ??
-                      "https://ui-avatars.com/api/?name=User"
-                    }
-                    alt={c.user?.name ?? "User"}
-                    className="w-8 h-8 rounded-full"
-                  />
-
                   <div className="bg-gray-100 rounded-xl px-3 py-2 text-sm max-w-[80%]">
-                    {c.comment}
+                    <CommentItem
+                      key={c.id}
+                      commentId={c.id}
+                      comment={c.comment}
+                      user={c.user}
+                      replies={c.replies}
+                      imageId={imageId}
+                      // reactions={c.reactions}
+                      // reactions_count={c.reactions_count}
+                    />
                   </div>
                 </motion.div>
               ))}
             </div>
 
             {/* Input */}
-            <div className="p-4 border-t flex gap-2">
+            <form className="p-4 border-t flex gap-2">
               <input
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="Write a comment..."
               />
-
               <button
+                type="submit"
                 onClick={handleSend}
                 disabled={loading}
                 className="font-semibold disabled:opacity-50"
@@ -169,7 +174,7 @@ const CommentDrawer = ({
                   />
                 </svg>
               </button>
-            </div>
+            </form>
           </motion.div>
         </motion.div>
       )}

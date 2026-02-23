@@ -13,19 +13,9 @@ export default function Landing() {
             Snappy
           </h1>
         </Link>
-
         <div className="flex gap-4 items-center">
           <Button title="Login" />
-          <button className="relative px-6 py-3 rounded-xl text-white font-semibold backdrop-blur-xl bg-white/10 border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 overflow-hidden">
-            {/* Liquid gradient background */}
-            <span className="absolute inset-0 rounded-xl bg-white/10 backdrop-blur-2xl border border-white/30"></span>
-
-            {/* Shine layer */}
-            <span className="absolute inset-0 bg-white/20 opacity-0 hover:opacity-100 transition-opacity duration-500"></span>
-
-            {/* Button content */}
-            <span className="relative z-10">Start Snapping</span>
-          </button>
+          <Button title="Start Snapping" />
         </div>
       </nav>
 

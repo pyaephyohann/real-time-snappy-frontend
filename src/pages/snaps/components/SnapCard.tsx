@@ -291,14 +291,16 @@ const SnapCard = ({
         </div>
 
         {/* Comment */}
-        <button onClick={() => setOpenComments(true)}>Comment</button>
+        <button onClick={() => setOpenComments(true)}>
+          Comment
+          <span className="text-xs text-gray-500 ml-1">{comments.length}</span>
+        </button>
         <CommentDrawer
           open={openComments}
           onClose={() => setOpenComments(false)}
           imageId={id}
           comments={comments}
         />
-
         {/* Share */}
         <div className="relative">
           <button onClick={() => setShowShareOptions(!showShareOptions)}>

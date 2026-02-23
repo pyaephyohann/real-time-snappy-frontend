@@ -10,6 +10,7 @@ const Home = () => {
   const navigate = useNavigate();
   const [hoveredId, setHoveredId] = useState(0);
   const [shuffledSnaps, setShuffledSnaps] = useState<any>([]);
+  const [users, setUsers] = useState<any>([]);
 
   const shuffleArray = (array: []) => {
     const shuffled = [...array];
@@ -30,6 +31,7 @@ const Home = () => {
         method: "GET",
         headers: {
           Authorization: `Bearer ${logInToken}`,
+          Accept: "application/json",
         },
       });
 
@@ -44,16 +46,29 @@ const Home = () => {
     }
   }, [logInToken]);
 
+  const handleGetAllUsers = useCallback(async () => {
+    if (!logInToken) return;
+    const response = await fetch(`${config.apiBaseUrl}/users`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${logInToken}`,
+      },
+    });
+    const responseJson = await response.json();
+    setUsers(responseJson.datas.data);
+  }, [logInToken]);
+
   useEffect(() => {
     handleGetAllSnaps();
-  }, [handleGetAllSnaps]);
+    handleGetAllUsers();
+  }, [handleGetAllSnaps, handleGetAllUsers]);
 
   return (
     <div>
       <Metadata title="Snappy | Welcome Home" />
       {/* Friend Datas */}
       <div className="flex w-[70%] mx-auto mt-[11rem] space-x-[1rem] justify-center">
-        {friendDatas.map((ele) => (
+        {users.map((ele: any) => (
           <div
             key={ele.id}
             className="cursor-pointer"
@@ -63,7 +78,7 @@ const Home = () => {
           >
             <div className="w-12 h-12 relative">
               <img
-                src={ele.url}
+                src={ele.avatar_url}
                 alt={ele.name}
                 className="w-full h-full rounded-full object-cover"
               />

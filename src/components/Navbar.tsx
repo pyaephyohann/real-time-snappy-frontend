@@ -1,10 +1,34 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import MenuCard from "./MenuCard";
 import { Link, useLocation } from "react-router-dom";
 
+type ScrollState = "top" | "mid" | "bottom";
+
 const Navbar: React.FC = () => {
   const [openMenuCard, setOpenMenuCard] = useState(false);
+
+  const [scrollState, setScrollState] = useState<ScrollState>("top");
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const y = window.scrollY;
+
+      if (y > 150) {
+        setScrollState("bottom");
+      } else if (y > 20) {
+        setScrollState("mid");
+      } else {
+        setScrollState("top");
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   const location = useLocation();
   const isAuthPageAndPasscodePage =
@@ -18,7 +42,17 @@ const Navbar: React.FC = () => {
   };
 
   return (
-    <div className="">
+    <nav
+      className={`mx-auto fixed top-0 left-0 right-0 w-full z-50 transition-all px-20 duration-1000 ease-in-out
+        ${
+          scrollState === "top"
+            ? "bg-transparent"
+            : scrollState === "mid"
+              ? "z-50 backdrop-blur-md bg-black/50 shadow-md"
+              : "z-50 backdrop-blur-md bg-black/50 shadow-md"
+        }
+      `}
+    >
       <div className="flex justify-between items-center">
         <Link to={"/home"} className="flex items-center">
           <img src="/logo.png" alt="logo" className="h-[9rem]" />
@@ -64,7 +98,7 @@ const Navbar: React.FC = () => {
           </AnimatePresence>
         </div>
       </div>
-    </div>
+    </nav>
   );
 };
 

@@ -14,6 +14,7 @@ const MenuCard = ({ setOpen }: Props) => {
 
   const handleLogOut = () => {
     localStorage.removeItem("logInToken");
+    localStorage.removeItem("currentUser");
     navigate("/auth/sign-in");
     setOpen(false);
   };

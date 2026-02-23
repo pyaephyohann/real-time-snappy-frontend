@@ -44,6 +44,7 @@ const SignIn = () => {
       }
 
       localStorage.setItem("logInToken", responseJson.token);
+      // localStorage.setItem("currentUser", )
 
       toast.success("Signed in successfully 🎉");
       navigate("/passcode");
